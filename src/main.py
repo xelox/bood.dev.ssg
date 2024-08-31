@@ -1,4 +1,5 @@
 import shutil
+import os
 
 from textnode import md_to_html
 
@@ -18,12 +19,22 @@ def generate_page(from_path, template_path, dest_path):
             with open(dest_path, 'w') as dest_file:
                 dest_file.write(res)
 
+def generate_pages_recursively(src_dir, template_path, dest_dir):
+    items = os.listdir(src_dir)
+    for item in items:
+        src_path = f'{src_dir}/{item}'
+        dest_path = f'{dest_dir}/{item.replace('.md', '.html')}'
+        if os.path.isfile(src_path):
 
-        
+            generate_page(src_path, template_path, dest_path)
+        else:
+            if not os.path.exists(dest_path):
+                os.mkdir(dest_path)
+            generate_pages_recursively(src_path, template_path, dest_path)
 
 def main():
     transfer_files()
-    generate_page('content/index.md', 'template.html', 'public/index.html')
+    generate_pages_recursively('content', 'template.html', 'public')
 
 
 if __name__ == "__main__":
