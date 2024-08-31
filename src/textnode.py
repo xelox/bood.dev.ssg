@@ -156,7 +156,7 @@ def md_to_html(md):
                 pre = ParentNode('pre', children=[code])
                 body_children.append(pre)
             case 'quote':
-                md = ''.join(block)
+                md = ''.join(map(lambda quote: quote.lstrip('>').strip(), block))
                 quote = LeafNode('blockquote', md_line_to_html_str(md))
                 body_children.append(quote)
             case 'unordered_list':
