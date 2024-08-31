@@ -14,7 +14,7 @@ class ParentNode(HTMLNode):
 
         children_str = ""
         for child in self.children:
-            if not isinstance(child, LeafNode):
+            if not isinstance(child, (LeafNode, ParentNode)):
                 raise ValueError('Children Of ParentNode must all be LeafNode')
             children_str += child.to_html()
 
