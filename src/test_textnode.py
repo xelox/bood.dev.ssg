@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode
+from textnode import TextNode, split_delimiter
 from leafnode import LeafNode
 
 
@@ -48,6 +48,28 @@ class TestTextNode(unittest.TestCase):
     def test_to_leafnode_other(self):
         text = TextNode('Some bad text type', 'other')
         self.assertRaises(ValueError, text.to_html_node)
+
+    def test_from_md(self):
+        test = TextNode("This is *text* with a `code block` word", 'text')
+        output1 = split_delimiter([test], '`', 'code')
+        expected1 = [
+            TextNode("This is *text* with a ", 'text'),
+            TextNode('code block', 'code'),
+            TextNode(' word', 'text')
+        ]
+
+        self.assertEqual(output1, expected1)
+
+        output2 = split_delimiter(output1, '*', 'bold')
+        expected2 = [
+            TextNode("This is ", 'text'),
+            TextNode('text', 'bold'),
+            TextNode(' with a ', 'text'),
+            TextNode('code block', 'code'),
+            TextNode(' word', 'text')
+        ]
+
+        self.assertEqual(output2, expected2)
 
 if __name__ == "__main__":
     unittest.main()

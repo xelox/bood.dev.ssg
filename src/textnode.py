@@ -30,5 +30,17 @@ class TextNode:
             case _:
                 raise ValueError('invalid text type')
 
+
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type}, {self.url})"
+
+def split_delimiter(old_nodes, delimiter: str, text_type: str) -> [LeafNode]:
+    res = []
+    for node in old_nodes:
+        for idx, str_val in enumerate(node.text.split(delimiter)):
+            if idx % 2 == 1:
+                res.append(TextNode(str_val, text_type))
+            else:
+                res.append(TextNode(str_val, node.text_type))
+
+    return res
