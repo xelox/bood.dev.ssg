@@ -1,6 +1,6 @@
 import unittest
 
-from textnode import TextNode, split_delimiter
+from textnode import TextNode, split_delimiter, split_link
 from leafnode import LeafNode
 
 
@@ -70,6 +70,44 @@ class TestTextNode(unittest.TestCase):
         ]
 
         self.assertEqual(output2, expected2)
+
+    def test_split_image(self):
+        md = TextNode("This is text with a ![rick roll](https://i.imgur.com/aKaOqIh.gif) and ![obi wan](https://i.imgur.com/fJRm4Vk.jpeg)", 'text')
+        expected = [
+            TextNode('This is text with a ', 'text'),
+            TextNode('rick roll', 'image', 'https://i.imgur.com/aKaOqIh.gif'),
+            TextNode(' and ', 'text'),
+            TextNode('obi wan', 'image', 'https://i.imgur.com/fJRm4Vk.jpeg'),
+        ]
+        self.assertEqual(split_link([md], 'image'), expected)
+
+    def test_split_link(self):
+        md = TextNode("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev). The end.", 'bold')
+        expected = [
+            TextNode('This is text with a link ', 'bold'),
+            TextNode('to boot dev', 'link', 'https://www.boot.dev'),
+            TextNode(' and ', 'bold'),
+            TextNode('to youtube', 'link', 'https://www.youtube.com/@bootdotdev'),
+            TextNode('. The end.', 'bold')
+        ]
+        self.assertEqual(split_link([md], 'link'), expected)
+
+    def test_split_image_and_bold(self):
+        md = TextNode("This is text with a *link* [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev). The end.", 'text')
+        step1 = split_link([md], 'link')
+        step2 = split_delimiter(step1, '*', 'bold')
+
+        expected = [
+            TextNode('This is text with a ', 'text'),
+            TextNode('link', 'bold'),
+            TextNode(' ', 'text'),
+            TextNode('to boot dev', 'link', 'https://www.boot.dev'),
+            TextNode(' and ', 'text'),
+            TextNode('to youtube', 'link', 'https://www.youtube.com/@bootdotdev'),
+            TextNode('. The end.', 'text')
+        ]
+
+        self.assertEqual(step2, expected)
 
 if __name__ == "__main__":
     unittest.main()
