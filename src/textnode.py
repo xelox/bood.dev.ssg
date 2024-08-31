@@ -85,7 +85,7 @@ def md_to_blocks(md: str):
     res = []
     block = []
     for line in md.split('\n'):
-        line = line.strip()
+        line = line.rstrip()
         if line == '':
             if block:
                 res.append(block)
@@ -135,14 +135,19 @@ def md_line_to_html_str(md):
 
 def md_to_html(md):
     body_children = []
+    title = None
     for block in md_to_blocks(md):
         block_type = block_to_block_type(block)
         match block_type:
             case 'heading':
                 line = block[0]
                 h_count = len(re.match(r'^#+', line).group(0))
-                line.lstrip('#' * h_count + ' ')
-                body_children.append(LeafNode(f'h{h_count}', md_line_to_html_str(md)))
+                line = line.lstrip(('#' * h_count) + ' ')
+
+                if h_count == 1:
+                    title = line
+
+                body_children.append(LeafNode(f'h{h_count}', md_line_to_html_str(line)))
             case 'code':
                 block[0] = block[0].lstrip('```')
                 block[-1] = block[-1].rstrip('```')
@@ -151,7 +156,7 @@ def md_to_html(md):
                 pre = ParentNode('pre', children=[code])
                 body_children.append(pre)
             case 'quote':
-                md = '\n'.join(block)
+                md = ''.join(block)
                 quote = LeafNode('blockquote', md_line_to_html_str(md))
                 body_children.append(quote)
             case 'unordered_list':
@@ -164,12 +169,12 @@ def md_to_html(md):
             case 'ordered_list':
                 children = []
                 for item in block:
-                    leaf = md_line_to_html_str(re.sub(r'\d+\. ', '', item))
+                    leaf = md_line_to_html_str(re.sub(r'^\d. ', '', item))
                     children.append(LeafNode('li', leaf))
                 olist = ParentNode('ol', children)
                 body_children.append(olist)
             case 'paragraph':
-                value = md_line_to_html_str('\n'.join(block))
+                value = md_line_to_html_str(''.join(block))
                 p = LeafNode('p', value)
                 body_children.append(p)
 
@@ -177,4 +182,7 @@ def md_to_html(md):
             case _:
                 raise ValueError(f'{block_type} block type not implemented')
 
-    return ParentNode('body', body_children).to_html()
+    if title is None:
+        raise ValueError('No title in mark down.')
+
+    return title, ParentNode('body', body_children).to_html()
