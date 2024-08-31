@@ -147,7 +147,7 @@ def md_to_html(md):
                 block[0].lstrip('```')
                 block[-1].rstrip('```')
                 md = '\n'.join(block)
-                code = LeafNode('code', md_line_to_html_str(md))
+                code = LeafNode(None, md_line_to_html_str(md))
                 pre = ParentNode('pre', children=[code])
                 body_children.append(pre)
             case 'quote':
