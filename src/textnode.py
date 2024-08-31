@@ -60,7 +60,7 @@ def split_link(old_nodes, link_type):
         prv_start = 0
         for item in re.finditer(pattern, node.text):
             left_seg = node.text[prv_start:item.start()]
-            res.append(TextNode(left_seg, node.text_type))
+            res.append(TextNode(left_seg, node.text_type, node.url))
             alt = item.group(1)
             url = item.group(2)
             res.append(TextNode(alt, link_type, url))
@@ -68,6 +68,14 @@ def split_link(old_nodes, link_type):
 
         if prv_start != len(node.text):
             last_segment = node.text[prv_start:]
-            res.append(TextNode(last_segment, node.text_type))
+            res.append(TextNode(last_segment, node.text_type, node.url))
 
     return res
+
+def md_to_textnodes(md: str):
+    output = split_delimiter([TextNode(md, 'text')], '**', 'bold')
+    output = split_delimiter(output, '*', 'italic')
+    output = split_delimiter(output, '`', 'code')
+    output = split_link(output, 'image')
+    output = split_link(output, 'link')
+    return output
