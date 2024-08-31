@@ -127,3 +127,54 @@ def block_to_block_type(block):
         return 'unordered_list'
 
     return 'paragraph'
+
+def md_line_to_html_str(md):
+    return ''.join(
+        map(lambda html_node: html_node.to_html(),
+            map(lambda txtnode: txtnode.to_html_node(), md_to_textnodes(md))))
+
+def md_to_html(md):
+    body_children = []
+    for block in md_to_blocks(md):
+        block_type = block_to_block_type(block)
+        match block_type:
+            case 'heading':
+                line = block[0]
+                h_count = len(re.match(r'^#+', line).group(0))
+                line.lstrip('#' * h_count + ' ')
+                body_children.append(LeafNode(f'h{h_count}', md_line_to_html_str(md)))
+            case 'code':
+                block[0].lstrip('```')
+                block[-1].rstrip('```')
+                md = '\n'.join(block)
+                code = LeafNode('code', md_line_to_html_str(md))
+                pre = ParentNode('pre', children=[code])
+                body_children.append(pre)
+            case 'quote':
+                md = '\n'.join(block)
+                quote = LeafNode('blockquote', md_line_to_html_str(md))
+                body_children.append(quote)
+            case 'unordered_list':
+                children = []
+                for item in block:
+                    leaf = md_line_to_html_str(re.sub(r'- |\* ', '', item))
+                    children.append(LeafNode('li', leaf))
+                olist = ParentNode('ul', children)
+                body_children.append(olist)
+            case 'ordered_list':
+                children = []
+                for item in block:
+                    leaf = md_line_to_html_str(re.sub(r'\d+\. ', '', item))
+                    children.append(LeafNode('li', leaf))
+                olist = ParentNode('ol', children)
+                body_children.append(olist)
+            case 'paragraph':
+                value = md_line_to_html_str('\n'.join(block))
+                p = LeafNode('p', value)
+                body_children.append(p)
+
+
+            case _:
+                raise ValueError(f'{block_type} block type not implemented')
+
+    return ParentNode('body', body_children).to_html()
