@@ -1,7 +1,6 @@
 import unittest
 
-from textnode import TextNode, split_delimiter, split_link, md_to_textnodes
-from leafnode import LeafNode
+from textnode import TextNode, split_delimiter, split_link, md_to_textnodes, md_to_blocks, block_to_block_type
 
 
 class TestTextNode(unittest.TestCase):
@@ -127,5 +126,65 @@ class TestTextNode(unittest.TestCase):
         ]
         self.assertEqual(md_to_textnodes(md), expected)
 
-if __name__ == "__main__":
-    unittest.main()
+    def test_md_to_blocks(self):
+        md = ''.join(
+            "# This is a heading             \n"
+            "  \n"
+            "\n"
+            "   \n"
+            "This is a paragraph of text. It has some **bold** and *italic* words inside of it.\n"
+            "\n"
+            "       \n"
+            "\n"
+            "* This is the first list item in a list block    \n"
+            "* This is a list item  \n"
+            "* This is another list item\n"
+        )
+        expected = [
+            ['# This is a heading'],
+            ['This is a paragraph of text. It has some **bold** and *italic* words inside of it.'],
+            [
+                "* This is the first list item in a list block",
+                "* This is a list item",
+                "* This is another list item"
+            ]
+        ]
+        self.assertEqual(md_to_blocks(md),  expected)
+
+    def test_block_to_block_type(self):
+        heading1 = ['# This is heading indeed']
+        self.assertEqual(block_to_block_type(heading1), 'heading')
+        heading3 = ['### Also Heading']
+        self.assertEqual(block_to_block_type(heading3), 'heading')
+        heading8 = ['######## Not heading']
+        self.assertEqual(block_to_block_type(heading8), 'paragraph')
+        heading0 = ['#Not heading']
+        self.assertEqual(block_to_block_type(heading0), 'paragraph')
+
+        quote = [
+            '>Some Quote Text',
+            '> Yep yep',
+            '> Quoteing stuff'
+        ]
+        self.assertEqual(block_to_block_type(quote), 'quote')
+
+        olist = [
+            '1. First item',
+            '2. First item',
+            '3. First item',
+        ]
+        self.assertEqual(block_to_block_type(olist), 'ordered_list')
+
+        ulist = [
+            '- la la la',
+            '* na na na',
+            '* stuff...'
+        ]
+        self.assertEqual(block_to_block_type(ulist), 'unordered_list')
+
+        code = [
+            '```some code here',
+            'indeed this is code (lol not even)',
+            'but let\'s say that is is...```'
+        ]
+        self.assertEqual(block_to_block_type(code), 'code')

@@ -1,4 +1,5 @@
 from leafnode import LeafNode
+from parentnode import ParentNode
 import re
 
 
@@ -79,3 +80,50 @@ def md_to_textnodes(md: str):
     output = split_link(output, 'image')
     output = split_link(output, 'link')
     return output
+
+def md_to_blocks(md: str):
+    res = []
+    block = []
+    for line in md.split('\n'):
+        line = line.strip()
+        if line == '':
+            if block:
+                res.append(block)
+            block = []
+        else:
+            block.append(line)
+
+    if block:
+        res.append(block)
+
+    return res
+
+def block_to_block_type(block):
+    first_line: str = block[0]
+    heading_pattern = r'^#{1,6} .*$'
+    if re.match(heading_pattern, first_line):
+        return 'heading'
+
+    last_line: str = block[-1]
+    if first_line.startswith('```') and last_line.endswith('```'):
+        return 'code'
+
+    is_quote = True
+    is_ulist = True
+    is_olist = True
+    for idx, line in enumerate(block):
+        if not line.startswith('>'):
+            is_quote = False
+        if not (line.startswith('- ') or line.startswith('* ')):
+            is_ulist = False
+        if not line.startswith(f"{idx + 1}. "):
+            is_olist = False
+
+    if is_quote:
+        return 'quote'
+    if is_olist:
+        return 'ordered_list'
+    if is_ulist:
+        return 'unordered_list'
+
+    return 'paragraph'
