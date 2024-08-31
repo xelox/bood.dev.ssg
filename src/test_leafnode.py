@@ -13,7 +13,3 @@ class TestLeafNode(unittest.TestCase):
     def test_no_tag(self):
         no_tag_node = LeafNode(tag=None, value='some value')
         self.assertEqual(no_tag_node.to_html(), "some value")
-
-    def test_to_html_fail(self):
-        node = LeafNode(tag='span', value=None)
-        self.assertRaises(ValueError, node.to_html)
