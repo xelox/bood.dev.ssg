@@ -144,10 +144,10 @@ def md_to_html(md):
                 line.lstrip('#' * h_count + ' ')
                 body_children.append(LeafNode(f'h{h_count}', md_line_to_html_str(md)))
             case 'code':
-                block[0].lstrip('```')
-                block[-1].rstrip('```')
+                block[0] = block[0].lstrip('```')
+                block[-1] = block[-1].rstrip('```')
                 md = '\n'.join(block)
-                code = LeafNode(None, md_line_to_html_str(md))
+                code = LeafNode('code', md_line_to_html_str(md))
                 pre = ParentNode('pre', children=[code])
                 body_children.append(pre)
             case 'quote':
